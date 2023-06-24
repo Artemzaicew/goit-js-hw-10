@@ -1,7 +1,7 @@
 const BASE_URL = 'https://api.thecatapi.com/v1';
 const API_KEY = 'live_mFF0WIN14ONml7fJ88Ckf31ZjBclR95v7XKWEeFCV2BJs0eKZuWQKC82rtHClnd8';
 
-async function fetchBreeds() {
+function fetchBreeds() {
   const url = `${BASE_URL}/breeds`;
   const params = {
     headers: {
@@ -9,55 +9,35 @@ async function fetchBreeds() {
     },
   };
 
-  try {
-    const response = await fetch(url, params);
+  return fetch(url).then(response => {
     if (!response.ok) {
       throw new Error(response.statusText);
     }
-    const data = await response.json();
-    return data.map(breed => {
-      return {
-        id: breed.id,
-        name: breed.name,
-      };
-    });
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
+    return response.json();
+  });
 }
 
-async function fetchCatByBreed(breedId) {
-  const url = `${BASE_URL}/images/search?breed_ids=${breedId}`;
+
+function fetchCatByBreed(breedId) {
+  const url = `${BASE_URL}/images/search`;
   const params = {
     headers: {
       'x-api-key': API_KEY,
     },
   };
 
-  try {
-    const response = await fetch(url, params);
-    if (!response.ok) {
-      throw new Error(response.statusText);
+  return fetch(`${url}?breed_ids=${breedId}&api_key=${API_KEY}`).then(
+    response => {
+      if (!response.ok) {
+        throw new Error(
+          'Не знайдено кота для вказаної породи.',
+          response.statusText
+        );
+      }
+      return response.json();
     }
-    const data = await response.json();
-    if (data.length > 0) {
-      const cat = data[0];
-      const breedInfo = cat.breeds[0];
-
-      return {
-        imageUrl: cat.url,
-        breed: breedInfo.name,
-        description: breedInfo.description,
-        temperament: breedInfo.temperament,
-      };
-    } else {
-      throw new Error('Не знайдено кота для вказаної породи.');
-    }
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
+  );
 }
+
 
 export { fetchBreeds, fetchCatByBreed };

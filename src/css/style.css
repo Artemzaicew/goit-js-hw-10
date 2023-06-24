@@ -4,6 +4,10 @@
     margin: 20px;
   }
 
+.cat-img {
+  width:400px
+}
+
   /* Loader */
   .loader {
     width: 48px;
@@ -32,6 +36,11 @@
     border-radius: 50%;
     animation: rotationBack 1s linear infinite;
     transform-origin: center center;
+  }
+
+  .slim-select .ss-single .ss-value {
+    max-height: 200px; /* Встановлюємо максимальну висоту списку */
+    overflow-y: auto; /* Увімкнути вертикальну прокрутку */
   }
   
   @keyframes rotation {

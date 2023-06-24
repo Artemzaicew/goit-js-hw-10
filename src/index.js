@@ -32,17 +32,33 @@ function clearCatInfo() {
   }
 }
 
+function populateCatInfo(catData) {
+  const catDiv = document.createElement('div');
+  const imageUrl = catData[0].url;
+  const breed = catData[0].breeds[0].name;
+  const description = catData[0].breeds[0].description;
+  const temperament = catData[0].breeds[0].temperament;
+  catDiv.innerHTML = `
+    <img src="${imageUrl}" width="500">
+    <div>
+      <h2>${breed}</h2>
+      <p>${description}</p>
+      <p><b>Темперамент:</b> ${temperament}</p>
+    </div>
+  `;
+  catInfoEl.appendChild(catDiv);
+}
+
 function populateBreedSelect(breeds) {
-  breeds.forEach(breed => {
-    let option = document.createElement('option');
-    option.value = breed.id;
-    option.innerHTML = breed.name;
-    breedSelectEl.appendChild(option);
-  });
+  const options = breeds.map(breed => ({
+    value: breed.id,
+    text: breed.name,
+  }));
 
   breedSelectEl.style.display = 'block';
   new SlimSelect({
     select: '.breed-select',
+    data: options,
   });
 }
 
@@ -50,10 +66,10 @@ async function fetchBreedsList() {
   try {
     const breeds = await fetchBreeds();
     populateBreedSelect(breeds);
-  } catch {
+  } catch (error) {
+    console.log(error);
     hideLoader();
     showError();
-    hideError();
   }
 }
 
@@ -62,34 +78,26 @@ document.addEventListener('DOMContentLoaded', () => {
   hideLoader();
   hideError();
   fetchBreedsList();
+});
 
-  breedSelectEl.addEventListener('change', async () => {
-    const breedId = breedSelectEl.value;
-    showLoader();
-    clearCatInfo();
-    
-    const requestToken = {};
-    currentRequestToken = requestToken;
+breedSelectEl.addEventListener('change', async () => {
+  const breedId = breedSelectEl.value;
+  showLoader();
+  clearCatInfo();
 
-    try {
-      const cat = await fetchCatByBreed(breedId);
-      if (requestToken === currentRequestToken) {
-        hideLoader();
-        cat.html = `
-            <img src="${cat.imageUrl}" width="500">  
-            <div>
-                <h2>${cat.breed}</h2>
-                <p>${cat.description}</p>
-                <p><b>Темперамент:</b> ${cat.temperament}</p>
-            </div>      
-        `;
-        catInfoEl.insertAdjacentHTML('afterbegin', cat.html);
-      }
-    } catch {
-      if (requestToken === currentRequestToken) {
-        hideLoader();
-        showError();
-      }
+  const requestToken = {};
+  currentRequestToken = requestToken;
+
+  try {
+    const catData = await fetchCatByBreed(breedId);
+    if (requestToken === currentRequestToken) {
+      hideLoader();
+      populateCatInfo(catData);
     }
-  });
+  } catch (error) {
+    if (requestToken === currentRequestToken) {
+      hideLoader();
+      showError();
+    }
+  }
 });
